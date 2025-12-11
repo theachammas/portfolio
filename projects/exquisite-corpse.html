@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Exquisite Corpse – Théa Chammas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Space+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style2.css">
+  <link rel="stylesheet" href="../project.css">
+  
+  <!-- Load p5.js library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+</head>
+<body>
+  <main class="project-page">
+    <section class="project-content">
+      <div class="project-info">
+        <h1 class="project-title">EXQUISITE CORPSE</h1>
+        <p class="project-description">Out of modular shapes, Rob was born to fit into almost every single environment. Whether he mixes with human beings, animals or any other strange creature, he is sure to fit in. His anatomy is so functional that wherever he's thrown into, his body parts are still distinguishable, and that's what makes him the cooolest robot on the web.
+</p>
+      </div>
+      
+      <div class="project-embed">
+        <div id="sketch-container"></div>
+      </div>
+    </section>
+
+    <section class="project-footer-meta">
+      <div class="footer-left">Critical Computation</div>
+      <div class="footer-right">Théa Chammas</div>
+    </section>
+  </main>
+
+  <script src="../script.js"></script>
+  
+  <!-- Your p5.js sketch code -->
+  <script>
+let pace = 1
+let cx = 0
+let cy = 0
+
+//Clara's variables
+let mainBody = '#7cff78'
+let secondBody = '#6bea65'
+
+const THEME = {
+  bg:   "#fff7ed",
+  black:"#0a0a0a",
+  blue: "#295cff",
+  red:  "#dc0022",
+  yellow: "#ffd700",
+  mint: "#00dd9d",
+  white:"#ffffff"
+};
+
+function setup() {
+  let canvas = createCanvas(400, 600);
+  canvas.parent('sketch-container');
+  noStroke()
+}
+
+function draw() {  
+  background(255);
+  cx = width/2
+  cy = height/2
+  //Calling for Clara's torso
+  body();
+  
+  const thirdHeight = height /3
+  const section_3 = height - height / 3
+  const s = 1
+  
+  drawRedTriangle(140, pace, 260, pace, 200, pace-60);
+  moveRedTriangleH(1);
+  drawLegs(cx, section_3, s, width/2, thirdHeight)
+}
+  
+function drawRedTriangle(triangleX1, triangleY1, triangleX2, triangleY2, triangleX3, triangleY3) { 
+  fill(220, 0, 0);
+  triangle (triangleX1, triangleY1, triangleX2, triangleY2, triangleX3, triangleY3);
+  
+  // Head
+  fill(220,0,0);
+  rect(135, 100, 130, 120, 10);
+  
+  // Eyes
+  fill(10,30,80);
+  ellipse(175, 140, 30, 40);
+  ellipse(225, 140, 30, 40);
+  fill(255);
+  ellipse(175, 140, 15, 25);
+  ellipse(225, 140, 15, 25);
+
+  // Mouth
+  fill(10,30,80);
+  rect(167, 178, 65, 23, 5);
+  fill(255);
+  rect(175, 185, 50, 10);
+}
+
+
+function moveRedTriangleH(move) {
+  if (pace + move < 90) {pace = pace + move}
+}
+
+
+// Natasha's legs
+function drawLegs(x, y, s, w, h) {
+  push()
+  translate(cx,cy)
+  fill(0);
+  stroke(0)
+  strokeWeight(3);
+  strokeCap(ROUND);
+  strokeJoin(ROUND);
+  translate(-20,0)
+
+  triangle(0, 110, 50, 110, 0, 250);
+  
+  //anklet
+  noStroke()
+  fill(THEME.yellow)
+  rect(-12, 255,20, 8, 5)
+  
+  //Feet
+  fill(0)
+  circle(-4, 280, 22);
+  
+  
+  push();
+  fill(0)
+  
+
+  // Reflect
+  translate(20, 0);
+  
+  scale(-1, 1);
+  
+  stroke(255)
+  strokeWeight(5)
+  triangle(0, 110, 50, 110, 0, 250);
+  stroke(0)
+    strokeWeight(3)
+    triangle(0, 110, 50, 110, 0, 250);
+  noStroke()
+  fill(THEME.yellow)
+  rect(-12, 255,20, 8, 5)
+  
+  fill(0)
+  circle(-4, 280, 22);
+  
+  pop();
+  pop()
+}
+
+//Clara's torso
+function torso(){ // define the torso
+  fill(mainBody);
+  rect (50, 230, 300, 200);
+}
+
+function arm(x,y,size){ // draw a full arm
+  fill(secondBody);
+  rect (x, y, 70, 100, 35); //shadow arm
+  fill(mainBody);
+  rect (x-5, y-5, 70, 100, 35); //main color arm
+}
+
+function body(){ //building the parts of the body within the same function to make it less messy and so I'm able to duplicate the arm instead of writing another function
+  torso();
+  arm(60, 300);
+  arm(260, 300); 
+
+}
+
+
+  </script>
+</body>
+</html>

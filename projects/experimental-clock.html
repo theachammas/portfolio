@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Experimental Clock – Théa Chammas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Space+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style2.css">
+  <link rel="stylesheet" href="../project.css">
+
+  <!-- Load p5.js library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+</head>
+<body>
+  <main class="project-page">
+    <section class="project-content">
+      <div class="project-info">
+        <h1 class="project-title">EXPERIMENTAL CLOCK</h1>
+        <p class="project-description">Ever since I was a kid, my mood, sleep cycles and energy level were irregular in a way I couldn't comprehend, until my mum some day told me after I suffered from an insomnia "it's because yesterday was a full moon". She turned out to be right. Every time I suffered from insomnia and would check the moon cycle, it was a full moon.</p>
+      </div>
+
+      <div class="project-embed">
+        <div id="sketch-container"></div>
+      </div>
+    </section>
+
+    <section class="project-footer-meta">
+      <div class="footer-left">Critical Computation</div>
+      <div class="footer-right">Théa Chammas</div>
+    </section>
+  </main>
+
+  <script src="../script.js"></script>
+
+  <!-- Your p5.js sketch code -->
+  <script>
+let phases = [
+  "New Moon",
+  "Waning Crescent",
+  "Last Quarter",
+  "Waning Gibbous",
+  "Full Moon",
+  "Waxing Gibbous",
+  "First Quarter",
+  "Waxing Crescent"
+];
+
+let stars = [];
+
+function setup() {
+  let canvas = createCanvas(600, 600);
+  canvas.parent('sketch-container');
+  angleMode(DEGREES);
+  textAlign(CENTER);
+  textSize(12);
+
+  // Background stars
+  for (let i = 0; i < 100; i++) {
+    stars.push({
+      x: random(width),
+      y: random(height),
+      baseSize: random(1, 3),
+    });
+  }
+}
+
+function draw() {
+  background(0);
+  drawStars();
+
+  // Earth
+  let earthR = 90;
+  stroke(100, 180, 255);
+  strokeWeight(2);
+  fill(0);
+  circle(300,300,90);
+  
+  // Earth Text
+  fill(255);
+  noStroke();
+  text('Earth', 300, 243);
+
+  // Moons / Earth radius
+  let orbitR = 210;
+
+  // Moon phases
+  for (let i = 0; i < 8; i++) {
+    let phaseAngle = map(i, 0, 8, 0, 360);
+    let x = width/2 + orbitR * cos(phaseAngle);
+    let y = height/2 + orbitR * sin(phaseAngle);
+
+    drawMoons(x, y, 60, i);
+
+    // Label phases
+    fill(255);
+    text(phases[i], x, y - 45);
+  }
+
+  // Draw clock hands
+  drawClockHands(300, 300, 220);
+  
+
+}
+
+function drawMoons(x, y, size, phaseIndex) {
+  stroke(255);
+  strokeWeight(2);
+  ellipse(x, y, size);
+  noStroke();
+
+  if (phaseIndex === 0) { 
+  fill(0);
+  ellipse(x, y, size);
+    
+  } else if (phaseIndex === 1) { 
+  fill(0);
+  arc(x, y, size, size, 0, 50);
+  ellipse(x - size * -0.2, y, size);
+    
+  } else if (phaseIndex === 2) { 
+  fill(0);
+  arc(x, y, size, size, -90, 90);
+    
+} else if (phaseIndex === 3) { 
+    fill(0);
+    arc(x, y, size, size, 90, 90);
+    ellipse(x + size * 0.7, y, size); 
+    
+  } else if (phaseIndex === 4) { 
+    
+  } else if (phaseIndex === 5) { 
+  fill(0);
+  arc(x, y, size, size, 90, 90);
+  ellipse(x - size* 0.7, y, size);
+    
+  } else if (phaseIndex === 6) { 
+  fill(0);
+  arc(x, y, size, size, 90, 270);
+    
+  } else if (phaseIndex === 7) { 
+  fill(0);
+  arc(x, y, size, size, 90, 90);
+  ellipse(x - size* 0.2, y, size);
+  }
+}
+
+function drawStars() {
+  noStroke();
+  for (let i = 0; i < stars.length; i++) {
+    let star = stars[i];
+
+    // Stars twinkle randomly
+    if (random(1) < 0.002) {
+    let twinkle = random();
+    }
+    
+    // Stars pulse randomly
+    frameRate (2)
+    let scale = random()
+    ellipse(star.x, star.y, star.baseSize * scale);
+  }
+}
+
+function drawClockHands(cx, cy, orbitR) {
+  const LunarCycleDays = 29.5;
+
+  // Reference is last new moon (Sept 21, 2025 13:54 ET)
+  let referenceDate = new Date("2025-09-21T17:54:00Z"); 
+  let now = new Date();
+
+  // day count difference between now and reference
+  let millisecondsSinceRef = now - referenceDate;
+  let wholeDays = floor(millisecondsSinceRef / (1000 * 60 * 60 * 24));
+
+  // Current day fraction using hour(), minute(), second(), millis()
+  let dayFraction =
+    (hour() / 24) +
+    (minute() / (24 * 60)) +
+    (second() / (24 * 60 * 60)) +
+    (millis() / (24 * 60 * 60 * 1000));
+
+  // Total elapsed days
+  let totalDays = wholeDays + dayFraction;
+
+  // Wrap into lunar cycle (0 → 29.5)
+  let lunarDay = totalDays % LunarCycleDays;
+  if (lunarDay < 0) lunarDay += LunarCycleDays;
+
+  // Fraction of full cycle
+  let cycleProgress = lunarDay / LunarCycleDays;
+
+  let lunarHandAngle = map(cycleProgress, 0, 1, -90, 270);
+
+  // Lunar watch hand
+  stroke(255, 255, 0);
+  strokeWeight(4);
+  let lunarLength = orbitR * 0.9;
+  line(cx, cy,
+       cx + lunarLength * cos(lunarHandAngle),
+       cy + lunarLength * sin(lunarHandAngle));
+
+  // Seconds watch hand
+  let s = second();
+  let secondAngle = map(s, 0, 60, -90, 270);
+  stroke(255, 0, 0);
+  strokeWeight(2);
+  let secondLength = orbitR * 0.6;
+  line(cx, cy,
+       cx + secondLength * cos(secondAngle),
+       cy + secondLength * sin(secondAngle));
+
+  // Earth Center
+  noStroke();
+  fill(255);
+  ellipse(cx, cy, 10);
+}
+
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Face Generator – Théa Chammas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Space+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style2.css">
+  <link rel="stylesheet" href="../project.css">
+  
+  <!-- Load p5.js library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+</head>
+<body>
+  <main class="project-page">
+    <section class="project-content">
+      <div class="project-info">
+        <h1 class="project-title">FACE GENERATOR</h1>
+        <p class="project-description">Based on simple shapes, I experimented with all the variables and randomness of elements I could use. This being one of my first coding projects, I've realized that with very simple shapes and tools, you can always end up doing something interesting. Just because you're not a coding pro doesn't mean you can only do boring stuff.</p>
+      </div>
+      
+      <div class="project-embed">
+        <div id="sketch-container"></div>
+      </div>
+    </section>
+
+    <section class="project-footer-meta">
+      <div class="footer-left">Critical Computation</div>
+      <div class="footer-right">Théa Chammas</div>
+    </section>
+  </main>
+
+  <script src="../script.js"></script>
+  
+  <!-- Your p5.js sketch code -->
+  <script>
+function setup() {
+  let canvas = createCanvas(400, 400);
+  canvas.parent('sketch-container');
+  noStroke();
+
+}
+
+function draw() {
+  background(0,0,250);
+
+  // Transition: 0 = left face, 1 = right face
+  let tx = map(mouseX, -10, width, 0, 1, true);
+  let ty = map(mouseY, -10, width, 0, 1, true);
+
+  let cx = width / 2;
+  let cy = height / 2;
+  
+  let t = (tx + ty) / 2;
+
+  // Face color
+  if (mouseIsPressed || (pmouseX !== mouseX || pmouseY !== mouseY)) {
+    frameRate(40);
+  } else {
+    frameRate(10);
+  }  let faceCol = color(random(255), random(255), random(255));
+  fill(faceCol);
+  
+  // Face shape
+  let faceSize = 300;
+  let corner = lerp(0, faceSize / 1, t); 
+  rect(cx, cy, faceSize, faceSize, corner)
+  
+  // Stroke colors based on mouse
+  let strokeR = map(mouseX, 0, width, 0, 255);
+  let strokeG = map(mouseY, 0, height, 0, 255);
+  let strokeB = map(mouseX + mouseY, 0, width + height, 255, 0);
+  
+rectMode(CENTER);
+
+  // Outer stroke
+  stroke(strokeR, strokeG, strokeB);
+  strokeWeight(15);
+  rect(cx, cy, faceSize, faceSize, corner);
+
+  // Inner stroke
+ stroke(strokeB, strokeG,strokeR);
+  strokeWeight(5);
+  rect(cx, cy, faceSize, faceSize, corner);
+  
+  // Eyes
+  let eyeCol = lerpColor(color(0, 255, 255), color(255,255,0), t);
+  fill(eyeCol);
+  
+  let eyeOffset = 120;
+  let eyeSize = 100;
+  let eyeRound = lerp(0, 80, t);
+
+  // Outer stroke
+  stroke(strokeG, strokeR, strokeB);
+  strokeWeight(15);
+  rect(cx - eyeOffset, cy - 40, eyeSize, eyeSize, eyeRound);
+  rect(cx + eyeOffset, cy - 40, eyeSize, eyeSize, eyeRound);
+
+  // Inner stroke (contrast color)
+  stroke(strokeB, strokeG,strokeR);
+  strokeWeight(5);
+  rect(cx - eyeOffset, cy - 40, eyeSize, eyeSize, eyeRound);
+  rect(cx + eyeOffset, cy - 40, eyeSize, eyeSize, eyeRound);
+
+  // Mouth
+  let mouthCol = lerpColor(color(255, 0, 204), color(0, 0, 255), t);
+  fill(mouthCol);
+
+  let mouthSize = lerp(60, 120, t); // circle to triangle
+  if (t < 0.5) {
+    ellipse(cx, cy + 70, 120, 100);
+  } else {
+    triangle(cx - mouthSize/-1.5, cy + 40,
+             cx + mouthSize/-1.5, cy + 40,
+             cx, cy + 60 + mouthSize/1.5);
+    
+  // Pupils
+  if (mouseIsPressed || (pmouseX !== mouseX || pmouseY !== mouseY)) {
+    fill(0);
+  }
+  ellipse(cx - eyeOffset, cy - 40, 30, 30);
+  ellipse(cx + eyeOffset, cy - 40, 30, 30);
+  }
+
+  let pupilSize = lerp(30, 130, t);
+   fill(0);
+   ellipse(cx - eyeOffset, cy - 40, pupilSize, pupilSize);
+   ellipse(cx + eyeOffset, cy - 40, pupilSize, pupilSize);
+  
+}
+
+
+  </script>
+</body>
+</html>

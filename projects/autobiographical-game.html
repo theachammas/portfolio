@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Autobiographical Game – Théa Chammas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Space+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style2.css">
+  <link rel="stylesheet" href="../project.css">
+  
+  <!-- Load p5.js library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+</head>
+<body>
+  <main class="project-page">
+    <section class="project-content">
+      <div class="project-info">
+        <h1 class="project-title">AUTOBIOGRAPHICAL GAME</h1>
+        <p class="project-description">In my friend’s group, I am the designated driver. As much as driving in Lebanon is insane and people hate it as it drives them crazy, I actually enjoy it so much as it takes the focus off my hyperactive brain and I get to drive around with my favorite music playing in the background.
+</p>
+      </div>
+      
+      <div class="project-embed">
+        <div id="sketch-container"></div>
+      </div>
+    </section>
+
+    <section class="project-footer-meta">
+      <div class="footer-left">Critical Computation</div>
+      <div class="footer-right">Théa Chammas</div>
+    </section>
+  </main>
+
+  <script src="../script.js"></script>
+  
+  <!-- Your p5.js sketch code -->
+  <script>
+let imgDay, imgSunset, imgNight;
+let carDay, carSunset, carNight;
+let currentImg, currentCar;
+let imgX = 0;
+let scrollSpeed = 4;
+let baseSpeed = 4;
+let car;
+let obstacle;
+let groundY = 230;
+let gameState = 0;
+
+// background switching
+let bgTimer = 0;
+let bgInterval = 9000; // 9 seconds
+let bgIndex = 0;
+let bgImages = [];
+let carImages = [];
+let speedIncrement = 1.5;
+
+// level tracking
+let level = 1;
+let levelLabels = [];
+
+// Button objects
+let playButton, stopButton;
+
+// colors
+let orange = '#FFA500';
+let magenta = '#FF00FF';
+
+// obstacles
+let obstacleImages = [];
+let imgBanana, imgCat, imgShisha, imgAlien, imgDinosaur;
+
+// sounds
+let startSound, jumpSound;
+
+function preload() {
+    imgDay = loadImage('./assets/day.png');
+  imgSunset = loadImage('./projects/assets/sunset.png');
+  imgNight = loadImage('./projects/assets/night.png');
+
+  carDay = loadImage('./projects/assets/daycar.png');
+  carSunset = loadImage('./projects/assets/sunsetcar.png');
+  carNight = loadImage('./projects/assets/nightcar.png');
+  
+  // obstacle images
+  imgBanana = loadImage('./assets/banana.png');
+  imgCat = loadImage('./projects/assets/cat.png');
+  imgShisha = loadImage('./projects/assets/shisha.png');
+  imgAlien = loadImage('./projects/assets/alien.png');
+  imgDinosaur = loadImage('./projects/assets/dinosaur.png');
+  
+  startSound = loadSound('./projects/assets/gamestart.mp3');
+  jumpSound = loadSound('./projects/assets/carjump.mp3');
+}
+
+
+class Car {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.w = 100; 
+    this.h = 60;
+    this.ySpeed = 4;
+    this.gravity = 0.4;
+    this.isJumping = false;
+
+  }
+  display() {
+    if (!currentCar) return;
+    push();
+    imageMode(CORNER);
+    image(currentCar, this.x, this.y, this.w, this.h); 
+    pop();
+  }
+
+  update() {
+    this.y += this.ySpeed;
+    this.ySpeed += this.gravity;
+
+    if (this.y > groundY) {
+      this.y = groundY;
+      this.ySpeed = 0;
+      this.isJumping = false;
+    }
+  }
+  
+  jump(direction) {
+    if (!this.isJumping) {
+      this.ySpeed = -15;
+      this.isJumping = true;
+      if (direction === "up") this.y -= 10;
+      if (jumpSound && jumpSound.isLoaded()) jumpSound.play();
+    }
+  }
+}
+
+class Obstacle {
+  constructor(x, y, w, h, speed, imgIndex) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.speed = speed;
+    this.imgIndex = imgIndex;
+    this.currentImage = obstacleImages[this.imgIndex];
+  }
+
+  display() {
+    image(this.currentImage, this.x, this.y, this.w, this.h);
+  }
+
+  update() {
+    this.x -= this.speed;
+    if (this.x + this.w < 0) {
+      this.reset();
+    }
+  }
+
+  reset() {
+    this.x = width + random(200, 400);
+    this.setImage(floor(random(obstacleImages.length)));
+  }
+  
+  setImage(newImgIndex) {
+    this.imgIndex = newImgIndex;
+    this.currentImage = obstacleImages[this.imgIndex];
+    // adjust size based on image to keep proportions
+    if (newImgIndex === 0) { // banana
+      this.w = 45; this.h = 35;
+    } else if (newImgIndex === 1) { // cat
+      this.w = 55; this.h = 55;
+    } else if (newImgIndex === 2) { // shisha
+      this.w = 48; this.h = 73;
+    } else if (newImgIndex === 3) { // alien
+      this.w = 100; this.h = 80;
+    } else if (newImgIndex === 4) { // dinosaur
+      this.w = 150; this.h = 100;
+    }
+    this.y = groundY - this.h + 65;
+  }
+
+  hits(car) {
+    // car bounding box
+    let carTop = car.y - car.h + 50;
+    let carBottom = car.y + 50;
+    let carLeft = car.x;
+    let carRight = car.x + car.w;
+    
+    // obstacle bounding box
+    let obsTop = this.y;
+    let obsBottom = this.y + this.h;
+    let obsLeft = this.x;
+    let obsRight = this.x + this.w;
+
+    return (
+      carRight > obsLeft &&
+      carLeft < obsRight &&
+      carBottom > obsTop &&
+      carTop < obsBottom
+    );
+  }
+}
+
+function setup() {
+  let canvas = createCanvas(600, 400);
+  canvas.parent('sketch-container');
+  userStartAudio();
+  // initialize level labels
+  for(let i = 1; i <= 9; i++) {
+    levelLabels.push(`Level ${i}`);
+  }
+  
+  // obstacle images array
+  obstacleImages = [imgBanana, imgCat, imgShisha, imgAlien, imgDinosaur];
+  
+  // initial setup
+  car = new Car(60, groundY);
+  obstacle = new Obstacle(width + 100, groundY + 23, 50, 60, 4, 0); 
+  obstacle.setImage(0);
+  
+  bgImages = [imgDay, imgSunset, imgNight];
+  carImages = [carDay, carSunset, carNight];
+  currentImg = bgImages[0];
+  currentCar = carImages[0];
+  bgTimer = millis();
+  
+  playButton = { x: 230, y: 150, w: 50, h: 50, action: 'resume' };
+  stopButton = { x: 300, y: 150, w: 50, h: 50, action: 'stop' };
+}
+
+function draw() {
+  // cycle backgrounds and cars
+  if (millis() - bgTimer > bgInterval) {
+    
+    // determine level update
+    bgIndex = (bgIndex + 1) % bgImages.length;
+    level++;
+    let obstacleIndex = (level - 1) % obstacleImages.length;
+
+    // update game elements
+    currentImg = bgImages[bgIndex];
+    currentCar = carImages[bgIndex];
+    obstacle.setImage(obstacleIndex);
+    obstacle.reset();
+    
+    // increase speed
+    scrollSpeed += speedIncrement;
+    obstacle.speed = scrollSpeed + 1;
+    bgTimer = millis();
+  }
+
+  // scrolling background
+  image(currentImg, -imgX, 0, 600, 400);
+  image(currentImg, width - imgX, 0, 600, 400);
+  imgX += scrollSpeed;
+  if (imgX >= width) imgX = 0;
+
+  // scenes
+   switch (gameState) {
+    case 0: drawIntro(); break;
+    case 1: drawGame(); break;
+    case 2: drawGameOver(); break;
+    case 3: drawPauseScreen(); break;
+  }
+  
+  drawBurgerIcon();
+  drawLevelLabel();
+}
+
+function drawIntro() {
+  background(orange);
+  fill(magenta);
+  textAlign(CENTER);
+  textSize(28);
+  text("DODGE THE OBSTACLES", width / 2, height / 2 - 40);
+  textSize(16);
+  text("Press SPACE to Start\nPress UP to Jump", width / 2, height / 2);
+}
+
+
+function drawGame() {
+  car.update();
+  car.display();
+  
+  obstacle.update();
+  obstacle.display();
+  
+  fill(255);
+  textAlign(CENTER);
+  textSize(16);
+  text("Press UP arrow to Jump!", width / 2, 50);
+
+  if (obstacle.hits(car)) {
+    gameState = 2;
+  }
+}
+
+function drawGameOver() {
+  background(orange);
+  fill(magenta);
+  textAlign(CENTER);
+  textSize(24);
+  text("GAME OVER", width / 2, height / 2 - 30);
+  textSize(16);
+  text("Press SPACE to Restart", width / 2, height / 2);
+}
+
+function drawPauseScreen() {
+  background(orange);
+  fill(magenta);
+  textAlign(CENTER);
+  textSize(28);
+  text("PAUSED", width / 2, 140);
+
+  // draw flat buttons
+  drawPlayIcon(playButton.x+10, playButton.y+15);
+  drawStopIcon(stopButton.x+10, stopButton.y+15);
+
+  // text labels below the icons
+  textSize(14); 
+  fill(magenta);
+  text("Resume", playButton.x+5 + playButton.w / 2, playButton.y + playButton.h + 25);
+  text("Start Again", stopButton.x+10 + stopButton.w / 2, stopButton.y + stopButton.h + 25);
+}
+
+
+function drawBurgerIcon() {
+  noStroke();
+  fill(orange);
+  let x = width - 40;
+  let y = 20;
+  let lineH = 3;
+  let spacing = 7;
+  for (let i = 0; i < 3; i++) {
+    rect(x, y + i * spacing, 20, lineH, 2);
+  }
+}
+
+function drawLevelLabel() {
+  fill(255);
+  textAlign(LEFT);
+  textSize(14);
+  text(levelLabels[level - 1], 20, 40);
+}
+
+function mousePressed() {
+  if (mouseX > width - 40 && mouseX < width - 20 && mouseY > 20 && mouseY < 40 && gameState === 1) {
+    gameState = 3;
+    noLoop();
+  }
+
+  if (gameState === 3) {
+    if (isInsideButton(playButton)) resumeGame();
+    if (isInsideButton(stopButton)) stopGame();
+  }
+}
+
+function keyPressed() {
+  if (keyCode === 32) { // spacebar
+    if (gameState === 0) {
+      gameState = 1;
+      if (startSound && startSound.isLoaded()) startSound.play();
+    } else if (gameState === 2) {
+      car = new Car(60, groundY); // reset to level 1
+      
+      // reset level-related variables
+      level = 1;
+      bgIndex = 0;
+      currentImg = bgImages[0];
+      currentCar = carImages[0];
+      scrollSpeed = baseSpeed;
+      bgTimer = millis();
+
+      // reset obstacle to banana and base speed
+      obstacle = new Obstacle(width + 100, groundY + 23, 50, 60, scrollSpeed + 1, 0); 
+      obstacle.setImage(0);
+      gameState = 1;
+      loop();
+    }
+  } else if (keyCode === UP_ARROW && gameState === 1) {
+    car.jump("up");
+  }
+} 
+
+function startGame() {
+  gameState = 1;
+  loop();
+}
+  
+function resumeGame() { gameState = 1; loop(); }
+
+function stopGame() {
+  gameState = 0;
+  scrollSpeed = baseSpeed;
+  bgIndex = 0;
+  currentImg = bgImages[0];
+  imgX = 0;
+  loop();
+}
+
+function restartGame() {
+  car = new Car(60, groundY);
+  obstacle = new Obstacle(width + 100, groundY + 23, 40, 40, 4);
+  scrollSpeed = baseSpeed;
+  bgIndex = 0;
+  currentImg = bgImages[0];
+  bgTimer = millis();
+  gameState = 1;
+  if (startSound && startSound.isLoaded()) startSound.play();
+  loop();
+}
+
+function isInsideButton(btn) {
+  return (mouseX > btn.x && mouseX < btn.x + btn.w && mouseY > btn.y && mouseY < btn.y + btn.h);
+}
+  
+function drawPlayIcon(x, y) { 
+  noStroke(); 
+  triangle(x + 10, y + 10, x + 10, y + 40, x + 40, y + 25); 
+}
+
+function drawStopIcon(x, y) { 
+  fill(magenta); 
+  noStroke(); 
+  rect(x + 10, y + 10, 30, 30); 
+}
+
+
+  </script>
+</body>
+</html>

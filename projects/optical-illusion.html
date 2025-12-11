@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Optical Illusion – Théa Chammas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Space+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style2.css">
+  <link rel="stylesheet" href="../project.css">
+
+  <!-- Load p5.js library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+</head>
+<body>
+  <main class="project-page">
+    <section class="project-content">
+      <div class="project-info">
+        <h1 class="project-title">OPTICAL ILLUSION</h1>
+        <p class="project-description">Using For Loops and Nested Loops, I got inspired by Vasarely's work to recreate this illusion in reference to his collaboration with David Bowie on a LP cover in 1969.</p>
+      </div>
+      <div class="project-embed">
+<div id="sketch-container"></div>
+      </div>
+    </section>
+    <section class="project-footer-meta">
+      <div class="footer-left">Critical Computation</div>
+      <div class="footer-right">Théa Chammas</div>
+    </section>
+  </main>
+  
+  <script src="../script.js"></script>
+  
+  <!-- Your p5.js sketch code -->
+  <script>
+function setup() {
+  let canvas = createCanvas(800, 800);
+  canvas.parent('sketch-container');
+  noStroke();
+
+}
+
+let cW = 0.5;
+let r = 0;
+
+function setup() {
+  let canvas = createCanvas(600, 600);
+  canvas.parent('sketch-container');
+  noStroke();
+  colorMode(HSB, 320, 80, 80);
+}
+
+function draw() {
+  background(70, 255, 100);
+  
+  let row = 20; // number of circles per row
+  let col = 20; // number of circles per column
+  let spacing = width / row;
+  
+  for (let i = -0.2; i < row; i++) {
+    for (let j = -0.2; j < col; j++) {
+      
+      // position
+      let x = i * spacing;
+      let y = j * spacing;
+      
+      // distance from center
+      let d = dist(x, y, width / 2, height / 2);
+      let maxD = dist(0, 0, width / 2, height / 2);
+      
+      // gradient
+      let hueVal = map(d, 0, maxD, 250, 120); // from blue to green
+      let brightness = map(d, 0, maxD, 20, 120);
+      
+      fill(hueVal, 100, brightness);
+      ellipse(x, y, spacing * 0.9, spacing * 0.9);
+    }
+  }
+
+  push();
+  translate(mouseX, mouseY);
+  rotate(r);
+
+for (let i = 0; i < 30; i++) {
+    square(0, 0, cW + i * 10);
+  
+    if (mouseIsPressed) {
+  r = r + 2;
+    }
+  }
+}
+</script>
+
+</body>
+</html>
